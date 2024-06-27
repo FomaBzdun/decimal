@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <math.h>
+#include <limits.h>
 
 typedef struct s21_decimal {
     unsigned int bits[4];
@@ -17,16 +19,33 @@ void print_dec(s21_decimal dec) {
     }
 }
 
-void s21_add(s21_decimal dec1, s21_decimal dec2, s21_decimal *result) {
-   unsigned int fpos = 0;
-   result->bits[fpos] = dec1.bits[fpos] + dec2.bits[fpos];
-   if(result->bits[fpos] < )
+void bits_shift_left(s21_decimal *dec, int val) {
+    for(int i = 0; i < val; i++) {
+        for(int j = 2; j >= 0; --j) {
+            dec->bits[j] <<= 1;
+            if(dec->bits[j - 1] >= pow(2, 31) && j < 3)
+                dec->bits[j] |= 1;
+        }
+    }
+}
+
+void bits_shift_right(s21_decimal *dec, int val) {
+    for(int i = 0; i < val; i++) {
+        for(int j = 0; j <= 2; ++j) {
+            dec->bits[j] >>= 1;
+            if((dec->bits[j + 1] - 1) == 0)
+                dec->bits[j] |= UINT_MAX;
+        }
+    }
 }
 
 int main() {
-    s21_decimal dec1 = {{4294967295, 0, 0, 0}};
-    s21_decimal dec2 = {{2, 0, 0, 0}};
-    s21_decimal dec_result = {{0, 0, 0, 0}};
-    s21_add(dec1, dec2, &dec_result); 
-    print_dec(dec_result);
+    s21_decimal dec1 = {{UINT_MAX - 6482, 0, 0, 0}};
+    print_dec(dec1);
+    printf("\n\n");
+    bits_shift_left(&dec1, 39);
+    print_dec(dec1);
+    printf("\n\n");
+    bits_shift_right(&dec1, 11);
+    print_dec(dec1);
 }
